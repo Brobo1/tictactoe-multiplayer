@@ -6,5 +6,5 @@ gameBoard.initialize();
 
 const game = new GameFlow();
 
-rematchEventListener(game);
 gameBoardEventListener(game);
+rematchEventListener(game);
