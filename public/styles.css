@@ -1,0 +1,86 @@
+body {
+  background-color: #323232;
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+  font-family: "Roboto", "sans-serif";
+}
+
+p {
+  margin: auto 0;
+  padding: 0;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#texts {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 28px;
+  color: #c8c8c8;
+}
+
+#player-x,
+#player-o {
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: background-color 0.5s ease;
+}
+
+#game-board {
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-board > div:not(:first-child) > div {
+  border-top: #505050 solid 2px;
+}
+
+#game-board > div > div:not(:first-child) {
+  border-left: #505050 solid 2px;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 180px;
+  height: 180px;
+  background-color: #8e8e8e;
+  font-size: 8em;
+  font-weight: 200;
+  text-align: center;
+}
+
+.sign-text {
+  opacity: 1;
+  animation-name: text-fade-in;
+  animation-duration: 0.3s;
+  pointer-events: none;
+}
+
+@keyframes text-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+#rematch {
+  display: none;
+  font-size: 30px;
+  font-family: inherit;
+  width: 200px;
+  align-self: center;
+}
