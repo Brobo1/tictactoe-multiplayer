@@ -26,19 +26,22 @@ function highlightPlayerTurn(player = 0) {
   return { clearHighlight };
 }
 
-export function GameFlow() {
+export function GameFlow(ws, playerNumber) {
   let gameBoard = new GameBoard();
   const players = [new Player("player1", "x"), new Player("player2", "o")];
-  let playerIndex = 0;
+  let playerIndex = 0; // Start with player 1
   let isGameOver = false;
 
-  const playTurn = (row, col) => {
+  const playTurn = (row, col, isLocal = true) => {
+    if (playerIndex !== playerNumber - 1 && isLocal) {
+      displayMessage("Not your turn!", "#da3030");
+      return;
+    }
+
     const currPlayer = players[playerIndex];
     if (gameBoard.setCell(currPlayer, row, col)) {
       displayMessage("");
-      playerIndex = (playerIndex + 1) % 2;
       gameBoard.printGameBoard();
-      highlightPlayerTurn(playerIndex);
       const result = validate(gameBoard);
       if (result) {
         displayMessage(
@@ -46,8 +49,13 @@ export function GameFlow() {
         );
         highlightPlayerTurn().clearHighlight();
         isGameOver = true;
-        playerIndex = 0;
         rematchBtn.style.display = "block";
+      } else {
+        playerIndex = (playerIndex + 1) % 2;
+        highlightPlayerTurn(playerIndex);
+      }
+      if (isLocal) {
+        ws.send(JSON.stringify({ type: "move", row, col }));
       }
     } else {
       displayMessage("Occupied", "#da3030");
@@ -93,13 +101,16 @@ export function GameFlow() {
     gameBoard.initialize();
     isGameOver = false;
     displayMessage("");
-    highlightPlayerTurn();
+    highlightPlayerTurn(playerIndex);
     rematchBtn.style.display = "none";
   };
 
   return { playTurn, isFinished, rematch };
 }
 
-export function rematchEventListener(game) {
-  rematchBtn.addEventListener("click", () => game.rematch());
+export function rematchEventListener(game, ws) {
+  rematchBtn.addEventListener("click", () => {
+    game.rematch();
+    ws.send(JSON.stringify({ type: "rematch" }));
+  });
 }

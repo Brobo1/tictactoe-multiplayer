@@ -53,11 +53,13 @@ export function GameBoard() {
   return { getGameBoard, printGameBoard, setCell, initialize };
 }
 
-export function gameBoardEventListener(game) {
+export function gameBoardEventListener(game, ws, playerNumber) {
   const gameBoardDiv = document.getElementById("game-board");
   gameBoardDiv.addEventListener("click", (e) => {
     if (!game.isFinished() && e.target.className === "cell") {
-      game.playTurn(e.target.dataset.row, e.target.dataset.col);
+      const row = e.target.dataset.row;
+      const col = e.target.dataset.col;
+      game.playTurn(row, col, true);
     }
   });
 }
