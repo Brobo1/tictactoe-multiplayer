@@ -2,67 +2,6 @@ const gameBoardDiv = document.getElementById("game-board");
 const textsDiv = document.getElementById("texts");
 const rematchBtn = document.getElementById("rematch");
 
-// WebSocket setup
-const socket = new WebSocket("ws://localhost:8080");
-let currentPlayer = null;
-
-// Ensure binaryType is set to `blob`
-socket.binaryType = "blob";
-
-socket.addEventListener("open", () => {
-  console.log("Connected to the WebSocket server");
-});
-
-socket.addEventListener("message", (event) => {
-  const processMessage = (data) => {
-    const message = JSON.parse(data);
-
-    if (message.type === "start") {
-      currentPlayer = message.player;
-      displayMessage(`You are player ${currentPlayer === "x" ? "X" : "O"}`);
-    }
-
-    if (message.type === "move") {
-      const { player, row, col } = message.move;
-      gameFlow.playTurn(row, col, false);
-    }
-
-    if (message.type === "reset") {
-      gameFlow.rematch();
-    }
-  };
-
-  if (typeof event.data === "string") {
-    processMessage(event.data);
-  } else {
-    const reader = new FileReader();
-    reader.onload = (e) => processMessage(e.target.result);
-    reader.readAsText(event.data);
-  }
-});
-
-socket.addEventListener("close", () => {
-  console.log("Disconnected from the WebSocket server");
-  displayMessage("Disconnected from server", "#da3030");
-});
-
-function sendMessage(message) {
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(message));
-  }
-}
-
-function Cell() {
-  let sign = " ";
-
-  const getSign = () => sign;
-  const addSign = (newSign) => {
-    sign = newSign;
-  };
-
-  return { getSign, addSign };
-}
-
 function GameBoard() {
   const row = 3;
   const col = 3;
@@ -126,17 +65,9 @@ function GameFlow() {
   let playerIndex = 0;
   let isGameOver = false;
 
-  const playTurn = (row, col, isLocal = true) => {
-    if (isLocal && players[playerIndex].sign !== currentPlayer) return;
-
+  const playTurn = (row, col) => {
     const currPlayer = players[playerIndex];
     if (gameBoard.setCell(currPlayer, row, col)) {
-      if (isLocal) {
-        sendMessage({
-          type: "move",
-          move: { player: currPlayer.sign, row, col },
-        });
-      }
       displayMessage("");
       playerIndex = (playerIndex + 1) % 2;
       gameBoard.printGameBoard();
@@ -197,13 +128,10 @@ function GameFlow() {
     displayMessage("");
     highlightPlayerTurn();
     rematchBtn.style.display = "none";
-    sendMessage({ type: "reset" });
   };
 
   return { playTurn, isFinished, rematch };
 }
-
-const gameFlow = new GameFlow();
 
 function displayMessage(message, color = "#c8c8c8") {
   textsDiv.children[1].textContent = message;
@@ -214,22 +142,29 @@ function highlightPlayerTurn(player = 0) {
   const playerElement = [textsDiv.children[0], textsDiv.children[2]];
 
   const clearHighlight = () =>
-    playerElement.forEach((player) => (player.style.fontWeight = "normal"));
-
-  if (player === 0 || player) {
-    playerElement[player].style.fontWeight = "bold";
-  }
+    playerElement.forEach((player) => (player.style.backgroundColor = ""));
+  clearHighlight();
+  playerElement[player].style.backgroundColor = "#4a4a4a";
 
   return { clearHighlight };
 }
 
-rematchBtn.addEventListener("click", () => gameFlow.rematch());
+function Cell() {
+  let sign = " ";
 
-gameBoardDiv.addEventListener("click", (event) => {
-  const target = event.target;
-  if (target.classList.contains("cell")) {
-    const row = parseInt(target.dataset.row, 10);
-    const col = parseInt(target.dataset.col, 10);
-    gameFlow.playTurn(row, col);
+  const addSign = (player) => (sign = player.sign);
+  const getSign = () => {
+    return sign;
+  };
+  return { addSign, getSign };
+}
+
+const game = new GameFlow();
+
+gameBoardDiv.addEventListener("click", (e) => {
+  if (!game.isFinished() && e.target.className === "cell") {
+    game.playTurn(e.target.dataset.row, e.target.dataset.col);
   }
 });
+
+rematchBtn.addEventListener("click", game.rematch);
