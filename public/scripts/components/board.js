@@ -52,3 +52,12 @@ export function GameBoard() {
   initialize();
   return { getGameBoard, printGameBoard, setCell, initialize };
 }
+
+export function gameBoardEventListener(game) {
+  const gameBoardDiv = document.getElementById("game-board");
+  gameBoardDiv.addEventListener("click", (e) => {
+    if (!game.isFinished() && e.target.className === "cell") {
+      game.playTurn(e.target.dataset.row, e.target.dataset.col);
+    }
+  });
+}
