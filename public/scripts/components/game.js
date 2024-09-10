@@ -29,7 +29,7 @@ function highlightPlayerTurn(player = 0) {
 export function GameFlow(ws, playerNumber) {
   let gameBoard = new GameBoard();
   const players = [new Player("player1", "x"), new Player("player2", "o")];
-  let playerIndex = 0; // Start with player 1
+  let playerIndex = 0;
   let isGameOver = false;
 
   const playTurn = (row, col, isLocal = true) => {
